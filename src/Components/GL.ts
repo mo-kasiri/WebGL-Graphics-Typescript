@@ -1,9 +1,12 @@
+/* Singleton */
+
 export class GLInstance{
     private canvas!: HTMLCanvasElement;
     readonly gl!: WebGL2RenderingContext | null;
+    private static instance: GLInstance;
 
-    constructor(public canvasID: string) {
-        this.canvas = <HTMLCanvasElement>document.getElementById(canvasID);
+    private constructor() {
+        this.canvas = <HTMLCanvasElement>document.getElementById("glCanvas");
         this.gl = this.canvas.getContext("webgl2");
 
         if(this.gl == null) console.error("WebGL context is not available");
@@ -11,6 +14,14 @@ export class GLInstance{
         //...................................................
         //Setup GL, Set all the default configurations we need.
         this.gl?.clearColor(1.0,1.0,1.0,1.0); // set clear color
+    }
+
+    public static Instance()
+    {
+        if(!GLInstance.instance){
+            return new GLInstance();
+        }
+        return GLInstance.instance;
     }
 
     // Methods

@@ -1,72 +1,109 @@
+/* Singleton */
+
+import {GLInstance} from "./GL";
 export class ShaderUtils
 {
-    public static programID: WebGLProgram | null;
-    public static shaderID: WebGLShader | null;
+    readonly gl:WebGL2RenderingContext = GLInstance.Instance().gl!;
+    private static instance: ShaderUtils;
+    private constructor() {}
 
-    static domShader(elementID: string): string
+    private static _programID: WebGLProgram | null;
+    private static _shaderID: WebGLShader | null;
+
+    public static Instance(): ShaderUtils
+    {
+        if (!ShaderUtils.instance)
+        {
+            ShaderUtils.instance = new ShaderUtils();
+        }
+        return ShaderUtils.instance;
+    }
+
+    domShader(elementID: string): string
     {
         let element: HTMLElement = <HTMLElement>document.getElementById(elementID);
         if(element == null || element.innerText == ""){console.log(elementID + " shader not found or no text.")}
         return element!.innerText;
     }
 
-    static CreateShader(gl: WebGL2RenderingContext, src: string, type: number): WebGLShader
+     CreateShader( src: string, type: GLenum): WebGLShader
     {
-        this.shaderID = gl?.createShader(type);
-        gl?.shaderSource(this.shaderID!, src);
-        gl?.compileShader(this.shaderID!);
+        ShaderUtils._shaderID = this.gl?.createShader(type);
+        this.gl?.shaderSource(ShaderUtils._shaderID!, src);
+        this.gl?.compileShader(ShaderUtils._shaderID!);
 
-        this.ErrorManagement("shader",gl);
+        ShaderUtils.ErrorManagement("shader");
 
-        return this.shaderID!;
+        return ShaderUtils._shaderID!;
     }
 
-    static CreateProgram(gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader)
+     CreateProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader)
     {
-        this.programID = gl?.createProgram();
-        gl?.attachShader(this.programID!, vertexShader);
-        gl?.attachShader(this.programID!, fragmentShader);
-        gl?.linkProgram(this.programID!);
+        ShaderUtils._programID = this.gl?.createProgram();
+        this.gl?.attachShader(ShaderUtils._programID!, vertexShader);
+        this.gl?.attachShader(ShaderUtils._programID!, fragmentShader);
+        this.gl?.linkProgram(ShaderUtils._programID!);
 
         //Can delete the shaders since the program has been made.
-        gl.detachShader(this.programID!,vertexShader); //TODO, detaching might cause issues on some browsers, Might only need to delete.
-        gl.detachShader(this.programID!,fragmentShader);
-        gl.deleteShader(fragmentShader);
-        gl.deleteShader(vertexShader);
+        this.gl.detachShader(ShaderUtils._programID!,vertexShader); //TODO, detaching might cause issues on some browsers, Might only need to delete.
+        this.gl.detachShader(ShaderUtils._programID!,fragmentShader);
+        this.gl.deleteShader(fragmentShader);
+        this.gl.deleteShader(vertexShader);
 
-        this.ErrorManagement("program",gl);
+        ShaderUtils.ErrorManagement("program");
 
 
-        return this.programID!;
+        return ShaderUtils._programID!;
 
     }
 
-    private static ErrorManagement(type: "shader" | "program",gl:WebGL2RenderingContext): null | undefined | void
+    private static ErrorManagement(type: "shader" | "program"): null | undefined | void
     {
-        let self = this;
+        let selfGL = GLInstance.Instance().gl!;
         if(type === "shader")
         {
             //Get Error data if shader failed compiling
-            if(!gl.getShaderParameter(self.shaderID!, gl.COMPILE_STATUS)){
-                console.error("Error compiling shader : " , gl.getShaderInfoLog(self.shaderID!));
-                gl.deleteShader(self.shaderID!);
+            if(!selfGL.getShaderParameter(ShaderUtils._shaderID!, selfGL.COMPILE_STATUS)){
+                console.error("Error compiling shader : " , selfGL.getShaderInfoLog(ShaderUtils._shaderID!));
+                selfGL.deleteShader(ShaderUtils._shaderID!);
                 return null;
             }
         }
         else if(type === "program")
         {
             //Check if successful
-            if(!gl.getProgramParameter(self.programID!, gl.LINK_STATUS)){
-                console.error("Error creating shader program.",gl.getProgramInfoLog(self.programID!));
-                gl.deleteProgram(self.programID!); return null;
+            if(!selfGL.getProgramParameter(ShaderUtils._programID!, selfGL.LINK_STATUS)){
+                console.error("Error creating shader program.",selfGL.getProgramInfoLog(ShaderUtils._programID!));
+                selfGL.deleteProgram(ShaderUtils._programID!); return null;
             }
 
             //Only do this for additional debugging.
-            gl.validateProgram(self.programID!);
-            if(!gl.getProgramParameter(self.programID!,gl.VALIDATE_STATUS)){
-                console.error("Error validating program", gl.getProgramInfoLog(self.programID!));
-                gl.deleteProgram(self.programID!); return null;
+            selfGL.validateProgram(ShaderUtils._programID!);
+            if(!selfGL.getProgramParameter(ShaderUtils._programID!,selfGL.VALIDATE_STATUS)){
+                console.error("Error validating program", selfGL.getProgramInfoLog(ShaderUtils._programID!));
+                selfGL.deleteProgram(ShaderUtils._programID!); return null;
             }
         }
     }
+
+    get GetProgramID(){
+        return ShaderUtils._programID!;
+    }
+
+     SendUniformData(gl: WebGL2RenderingContext, uniformName: string, data: number):boolean
+    {
+        let ID: WebGLUniformLocation = gl.getUniformLocation(ShaderUtils._programID!, uniformName)!;
+        if(ID == -1)
+        {
+            console.log("shader variable "+ uniformName + "not found or not used");
+            return false;
+        }
+
+        if(typeof data == "number"){
+        gl?.uniform1f(ID,data);
+            return true;
+        }
+        return false;
+    }
+
 }

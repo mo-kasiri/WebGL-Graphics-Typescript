@@ -8,57 +8,54 @@ const sizes = {
     height: window.innerHeight
 }
 
-let glInstance: GLInstance;
-let gl!: WebGL2RenderingContext;
 
+let gl: WebGL2RenderingContext = GLInstance.Instance().gl!;
 const triangleData: Float32Array = new Float32Array([0.0,   0.5, 0.0,
-    0.5,  -0.5, 0.0,
-    -0.5, -0.5, 0.0]);
+                                                            0.5,  -0.5, 0.0,
+                                                            -0.5, -0.5, 0.0]);
 let triangleBuffer: Buffer;
+let programID: WebGLProgram;
 
 window.addEventListener("load", ()=>{
-    //............................................
-    //Get our extended GL Context Object
-    glInstance = new GLInstance("glCanvas");
-    if(glInstance.gl != null)
-        gl = glInstance.gl;
-    glInstance.fSetSize(sizes.width,sizes.height).fClear();
 
-    //............................................
-    //SHADER STEPS
-    // 1. Get Vertex and Fragment Shader Text
-    let vertexShaderText: string = ShaderUtils.domShader("vertex_shader");
-    let fragmentShaderText: string = ShaderUtils.domShader("fragment_shader");
-    // 2. Compile text and validate
-    let vertexShaderID = ShaderUtils.CreateShader(gl,vertexShaderText,gl.VERTEX_SHADER);
-    let fragmentShaderID = ShaderUtils.CreateShader(gl,fragmentShaderText,gl.FRAGMENT_SHADER);
-    // 3. Link the shaders together as a program.
-    let shaderID = ShaderUtils.CreateProgram(gl,vertexShaderID,fragmentShaderID);
+    GLInstance.Instance().fSetSize(sizes.width,sizes.height).fClear();
+
+    // ======================
+    // Shader part
+    // getting shader text
+    let vertexShaderText: string = ShaderUtils.Instance().domShader("vertex_shader");
+    console.log(vertexShaderText);
+    let fragmentShaderText: string = ShaderUtils.Instance().domShader("fragment_shader");
+    // creating vertex and fragment shader
+    let vertexShaderID = ShaderUtils.Instance().CreateShader(vertexShaderText, gl.VERTEX_SHADER);
+    let fragmentShaderID = ShaderUtils.Instance().CreateShader(fragmentShaderText, gl.FRAGMENT_SHADER);
+    // creating program based on shaders
+    programID = ShaderUtils.Instance().CreateProgram(vertexShaderID,fragmentShaderID);
+
+    // ================
+    // Buffer part
+    triangleBuffer = new Buffer();
+    triangleBuffer.CreateBuffer(3);
+    triangleBuffer.FillBuffer("VERTEX_BUFFER",triangleData, gl.STATIC_DRAW);
+    triangleBuffer.LinkBuffer("a_position","VERTEX_BUFFER",3,gl.FLOAT);
+
+
 
     // 4. Get Location of Uniforms and Attributes.
-    gl?.useProgram(shaderID);
-    let aPositionLocation = gl?.getAttribLocation(shaderID,"a_position");
-    let uPointSizeLocation = gl?.getUniformLocation(shaderID, "uPointSize");
+    gl?.useProgram(programID);
+    triangleBuffer.Render(gl.TRIANGLES);
+
+    ShaderUtils.Instance().SendUniformData(gl,"uPointSize",50.0);
     gl?.useProgram(null);
-
-    //............................................
-    //Set Up For Drawing
-    gl?.useProgram(shaderID);				//Activate the Shader
-    gl?.uniform1f(uPointSizeLocation!,50.0);		//Store data to the shader's uniform variable uPointSize
-
-    triangleBuffer = new Buffer(triangleData, gl);
-    triangleBuffer.bind();
-    gl.enableVertexAttribArray(aPositionLocation);					// Enable the position attribute in the shader
-    gl.vertexAttribPointer(aPositionLocation,3,gl.FLOAT,false,0,0);	// Set which buffer the attribute will pull its data from
-    triangleBuffer.unbind();
-    triangleBuffer.draw(gl.TRIANGLES,0,3);                        // Draw the Triangle
+    //triangleBuffer.DestroyBuffer();
 });
 
 window.addEventListener("resize", ()=>{
     sizes.width = window.innerWidth;
     sizes.height = window.innerHeight;
-    glInstance.fSetSize(sizes.width,sizes.height);
-    triangleBuffer.draw(gl.TRIANGLES,0,3);
+    GLInstance.Instance().fSetSize(sizes.width,sizes.height);
+    gl?.useProgram(programID);
+    triangleBuffer.Render(gl.TRIANGLES);
     //TODO: set camera aspect radio
 })
 
