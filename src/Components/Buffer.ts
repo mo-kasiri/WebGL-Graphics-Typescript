@@ -17,7 +17,6 @@ export class Buffer{
         this.colorVBO = this.gl?.createBuffer();
         this.textureVBO = this.gl?.createBuffer();
         this.VAO = this.gl?.createVertexArray();
-        /*this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexVBO);*/
 
         this.totalVertices = totalVertices;
     }
@@ -41,9 +40,9 @@ export class Buffer{
         this.gl?.bindVertexArray(null);
     }
 
-    LinkBuffer(attribute: string, vboType: bufferType, componentType: number, dataType: number){
+    LinkBuffer(attributeName: string, vboType: bufferType, componentType: number, dataType: number){
         let programID = ShaderUtils.Instance().GetProgramID;
-        let attribLocationID = this.gl?.getAttribLocation(programID, attribute);
+        let attribLocationID = this.gl?.getAttribLocation(programID, attributeName);
 
         this.gl?.bindVertexArray(this.VAO);
 

@@ -90,9 +90,9 @@ export class ShaderUtils
         return ShaderUtils._programID!;
     }
 
-     SendUniformData(gl: WebGL2RenderingContext, uniformName: string, data: number):boolean
+     SendUniformData( uniformName: string, data: number):boolean
     {
-        let ID: WebGLUniformLocation = gl.getUniformLocation(ShaderUtils._programID!, uniformName)!;
+        let ID: WebGLUniformLocation = this.gl.getUniformLocation(ShaderUtils._programID!, uniformName)!;
         if(ID == -1)
         {
             console.log("shader variable "+ uniformName + "not found or not used");
@@ -100,7 +100,7 @@ export class ShaderUtils
         }
 
         if(typeof data == "number"){
-        gl?.uniform1f(ID,data);
+        this.gl?.uniform1f(ID,data);
             return true;
         }
         return false;

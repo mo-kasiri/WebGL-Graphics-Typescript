@@ -9,7 +9,10 @@ export class GLInstance{
         this.canvas = <HTMLCanvasElement>document.getElementById("glCanvas");
         this.gl = this.canvas.getContext("webgl2");
 
-        if(this.gl == null) console.error("WebGL context is not available");
+        if(this.gl == null) {
+            console.error("WebGL context is not available");
+            return;
+        }
 
         //...................................................
         //Setup GL, Set all the default configurations we need.
@@ -19,7 +22,7 @@ export class GLInstance{
     public static Instance()
     {
         if(!GLInstance.instance){
-            return new GLInstance();
+            GLInstance.instance = new GLInstance();
         }
         return GLInstance.instance;
     }
