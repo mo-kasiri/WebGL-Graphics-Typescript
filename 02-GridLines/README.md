@@ -1,4 +1,4 @@
-# Rendering Triangle
+# WebGL 101
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
