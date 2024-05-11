@@ -33,23 +33,27 @@ window.addEventListener("load", ()=>{
     // creating program based on shaders
     programID = ShaderUtils.Instance().CreateProgram(vertexShaderID,fragmentShaderID);
 
-    // ================
+    // ===================================
     // Buffer part
     triangleBuffer = new Buffer();
     triangleBuffer.CreateBuffer(3);
     triangleBuffer.FillBuffer("VERTEX_BUFFER", triangleData, gl.STATIC_DRAW);
     triangleBuffer.LinkBuffer("a_position","VERTEX_BUFFER",3,gl.FLOAT);
+    // Buffer
+
     gl?.useProgram(programID);
 
     let uSize = 0.5;
     let direction = 1;
-    let animationLoop = new AnimationLoop(onRender).start();
+    let animationLoop = new AnimationLoop(onRender);
+    animationLoop.start();
 
-    // ===========================
+    // ===================================
     // Render Loop
-    function onRender(dt:number){
+    function onRender(dt: number){
 
-        if(uSize > 1 || uSize < 0){
+        if(uSize > 1 || uSize < 0)
+        {
             direction *= -1;
         }
         uSize += direction*dt;

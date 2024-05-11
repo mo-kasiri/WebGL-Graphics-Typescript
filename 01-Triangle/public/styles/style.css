@@ -23,5 +23,6 @@ body
   top: 20px;
   left: 20px;
   font-size: large;
-  font-weight: bold;
+  font-weight: 700;
+  font-family: sans-serif;
 }
