@@ -68,6 +68,7 @@ export class Buffer{
     Render(drawType: number){
        this.gl?.bindVertexArray(this.VAO);
        this.gl?.drawArrays(drawType, 0, this.totalVertices);
+       //this.gl?.drawElements(drawType,this.totalVertices,this.gl.UNSIGNED_BYTE,0);
     }
 
     DestroyBuffer()

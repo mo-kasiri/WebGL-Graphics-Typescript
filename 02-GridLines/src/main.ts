@@ -3,6 +3,7 @@ import {GLInstance} from "./Components/GL";
 import {ShaderUtils} from "./Components/Shaders";
 import {Buffer} from "./Components/Buffer";
 import {AnimationLoop} from "./Components/AnimatinLoop";
+import {GridLines} from "./Components/primitives/gridLines";
 
 const sizes = {
     width: window.innerWidth,
@@ -15,6 +16,7 @@ const triangleData: Float32Array = new Float32Array([0.0,  0.5, 0.0,
                                                               0.5, -0.5, 0.0,
                                                              -0.5, -0.5, 0.0]);
 let triangleBuffer: Buffer;
+let meshBuffer: Buffer;
 let programID: WebGLProgram;
 
 window.addEventListener("load", ()=>{
@@ -34,36 +36,28 @@ window.addEventListener("load", ()=>{
     programID = ShaderUtils.Instance().CreateProgram(vertexShaderID,fragmentShaderID);
 
     // ===================================
-    // Buffer part
-    triangleBuffer = new Buffer();
-    triangleBuffer.CreateBuffer(3);
-    triangleBuffer.FillBuffer("VERTEX_BUFFER", triangleData, gl.STATIC_DRAW);
-    triangleBuffer.LinkBuffer("a_position","VERTEX_BUFFER",3,gl.FLOAT);
-    // Buffer
+    // ===================================Buffer Part
+    // Mesh
+    meshBuffer = new Buffer();
+    let meshData =new Float32Array(GridLines.CreateMesh(10,10))
+    console.log(meshData);
+    meshBuffer.CreateBuffer(meshData.length/3);
+    meshBuffer.FillBuffer("VERTEX_BUFFER", meshData, gl.STATIC_DRAW);
+    meshBuffer.LinkBuffer("a_position", "VERTEX_BUFFER",3, gl.FLOAT);
+
+    //==================================== Buffer Part
 
     gl?.useProgram(programID);
 
-    let uSize = 0.5;
-    let direction = 1;
     let animationLoop = new AnimationLoop(onRender);
     animationLoop.start();
 
     // ===================================
     // Render Loop
     function onRender(dt: number){
-
-        if(uSize > 1 || uSize < 0)
-        {
-            direction *= -1;
-        }
-        uSize += direction*dt;
-
-
-        ShaderUtils.Instance().SendUniformData("uSize",uSize);
-
-        triangleBuffer.Render(gl.TRIANGLES);
+        meshBuffer.Render(gl.POINTS);
     }
-//triangleBuffer.DestroyBuffer();
+
 });
 
 window.addEventListener("resize", ()=>{
@@ -73,7 +67,9 @@ window.addEventListener("resize", ()=>{
     gl?.useProgram(programID);
     triangleBuffer.Render(gl.TRIANGLES);
     //TODO: set camera aspect radio
-})
+});
+
+
 
 
 
